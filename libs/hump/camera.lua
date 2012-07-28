@@ -26,23 +26,54 @@ THE SOFTWARE.
 
 local _PATH = (...):match('^(.*[%./])[^%.%/]+$') or ''
 local vec = require(_PATH..'vector-light')
+local lg = love.graphics
 
 local camera = {}
 camera.__index = camera
-
-local function new(x,y, z, rot, w, h)
-	if not w or not h then
-		w=love.graphics.getWidth()
-		h=love.graphics.getHeight()
+-------------------
+-- public interface
+-------------------
+local function new(shape,x,y,r,sx,sy)
+	-- new camera with shape boundary
+	shape._invertScale = 1
+	
+	-------------------
+	-- modified scaling
+	-------------------
+	local scale = shape.scale
+	
+	local _setScale = function(self,s)
+		assert(s > 0, 'scale must be greater than 0!')
+		scale(self,self._invertScale)
+		scale(self,s)
+		self._invertScale = 1/s
 	end
-	x,y  = x or w/2, y or h/2
-	z = z or 1
-	rot  = rot or 0
-	return setmetatable({x = x, y = y, z = z, rot = rot, w=w, h=h}, camera)
+	local _scale = function(self,s)
+		assert(s > 0, 'scale must be greater than 0!')
+		scale(self,s)
+		self._invertScale = self._invertScale / s
+	end
+	local _getScale = function(self)
+		return 1/self._invertScale
+	end
+	
+	shape.scale		= _scale
+	shape.setScale	= _setScale
+	shape.getScale	= _getScale
+	
+	local _stencil = lg.newStencil(function()
+		shape:draw('fill')
+	end)
+	x,y		= x or lg.getWidth()/2, y or lg.getHeight()/2
+	sx = sx or 1
+	sy,r	= sy or sx,r or 0
+	return setmetatable(
+		{x = x, y = y, sx = sx, sy = sy, r = r, 
+		_stencil = _stencil,shape = shape}, camera)
 end
 
 function camera:rotate(phi)
-	self.rot = self.rot + phi
+	self.r = self.r + phi
 	return self
 end
 
@@ -51,22 +82,30 @@ function camera:move(x,y)
 	return self
 end
 
-function camera:zoom(f)
-	self.z=self.z*f
-	return self
+function camera:setScale(sx,sy)
+	self.sx,self.sy = sx,sy or sx
+end
+
+function camera:scale(sx,sy)
+	self.sx,self.sy = self.sx * sx,self.sy * (sy or sx)
 end
 
 function camera:attach()
-	local cx,cy = vec.div(self.z*2, self.w, self.h)
-	love.graphics.push()
-	love.graphics.scale(self.z)
-	love.graphics.translate(cx, cy)
-	love.graphics.rotate(self.rot)
-	love.graphics.translate(-self.x, -self.y)
+	-- draw poly mask
+	lg.push()
+	local shapecx,shapecy = self.shape:center()
+	lg.setStencil(self._stencil)
+	-- transform view in viewport
+	local cx,cy = shapecx*2/(self.sx*2),shapecy*2/(self.sy*2)
+	lg.scale(self.sx,self.sy)
+	lg.translate(cx, cy)
+	lg.rotate(self.r)
+	lg.translate(-self.x, -self.y)
 end
 
 function camera:detach()
-	love.graphics.pop()
+	lg.setStencil()
+	lg.pop()
 end
 
 function camera:draw(func)
@@ -76,17 +115,49 @@ function camera:draw(func)
 end
 
 function camera:cameraCoords(x,y)
-	x,y = vec.rotate(self.rot, x-self.x, y-self.y)
-	return x*self.z + self.w/2, y*self.z + self.h/2
+	local scx,scy = self.shape:center()
+	local w,h = scx*2,scy*2
+	x,y = vec.rotate(self.r, x-self.x, y-self.y)
+	return x*self.sx + w/2, y*self.sy + h/2
 end
 
 function camera:worldCoords(x,y)
-	x,y = vec.rotate(-self.rot, vec.div(self.z, x-self.w/2, y-self.h/2))
+	local scx,scy = self.shape:center()
+	local w,h = scx*2,scy*2
+	x,y = vec.rotate(-self.r, (x-w/2)/self.sx, (y-h/2)/self.sy)
 	return x+self.x, y+self.y
 end
 
 function camera:mousepos()
 	return self:worldCoords(love.mouse.getPosition())
+end
+
+-------------------
+-- world functions
+-------------------
+function camera:worldContains(x,y)
+	return self.shape:contains(self:cameraCoords(x,y))
+end
+
+function camera:worldBbox()
+	local x1,y1,x2,y2 = self.shape:bbox()
+	x1,y1 = self:worldCoords(x1,y1)
+	x2,y2 = self:worldCoords(x2,y2)
+	-- for negative scaling
+	if x1 > x2 then
+		x1,x2 = x2,x1
+	end
+	if y1 > y2 then
+		y1,y2 = y2,y1
+	end
+	return x1,y1,x2,y2
+end
+
+function camera:worldIntersectsRay(x,y,dx,dy)
+	local x2,y2 = self:cameraCoords(x+dx,y+dy)
+	x,y = self:cameraCoords(x,y)
+	dx,dy = x2-x,y2-y
+	return self.shape:intersectsRay(x,y,dx,dy)
 end
 
 -- the module

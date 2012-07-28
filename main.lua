@@ -24,34 +24,33 @@ function loadTest(test)
 		world:destroy()
 		mouseJoint=nil
 	end
-
+	
 	local s="currentTest="..test.."()"
 	loadstring(s)()
 	currentTest.title=test
 	world=currentTest.world
 	camera=currentTest.camera
-	settings=currentTest.settings
+	settings=settings or Settings()
 	mouseJoint=currentTest.mouseJoint
-	settings.pause=not settings.enableWarmStarting
+	-- settings.pause=not settings.enableWarmStarting
 	slider:SetValue(settings.hz)
 end
 
 function love.load()
+	require "libs/loveframes/init"
+	require "internal/gui"
+	require 'internal/settings'
+	require "internal/test"
+	require "internal/render"
+
 	w=love.graphics.getWidth()
 	h=love.graphics.getHeight()
 
 	love.physics.setMeter(1)
-    worldScale=15
-	
-   require "libs/loveframes/init"
-   require "internal/gui"
-   require "internal/test"
-   require "internal/render"
-	
 	
    --adding all the tests from the tests lib
-   local testsTable = love.filesystem.enumerate( "tests" )
-   for i, v in ipairs(testsTable) do
+	local testsTable = love.filesystem.enumerate( "tests" )
+	for i, v in ipairs(testsTable) do
 		print(v)
 		local s=string.gsub(v, ".lua", "")
 		require("tests/"..s)
@@ -67,26 +66,27 @@ end
 
 local worldUpdateCounter=0
 function love.update(dt)
-	
+	-- time control
 	if world then
-		if not settings.pause then 
+		if not settings.pause then
 			worldUpdateCounter=worldUpdateCounter+dt
-			if worldUpdateCounter> 1/settings.hz then
-					world:update(1/settings.hz)
-					worldUpdateCounter=worldUpdateCounter-1/settings.hz
+			if worldUpdateCounter > 1 then
+				worldUpdateCounter = 1
+			end
+			
+			while worldUpdateCounter >= 1/settings.hz do
+				world:update(1/settings.hz)
+				worldUpdateCounter = worldUpdateCounter-1/settings.hz
 			end
 		end
 	end
-	
 		
 	if love.mouse.isDown("l") or love.mouse.isDown("r") then
 		local x, y=love.mouse.getPosition()
 		
 		--updating the mousejoint's position
 		if world and mouseJoint and love.mouse.isDown("l") then
-			local tx, ty = x-(w-panel:GetWidth())/2, -(y-h/2)
-			tx, ty=camera:worldCoords(tx, ty)
-			tx, ty=tx/worldScale, ty/worldScale
+			local tx, ty = camera:mousepos()
 			if mouseJoint then
 				mouseJoint:setTarget(tx, ty)
 			end
@@ -94,66 +94,80 @@ function love.update(dt)
 		
 		--dragging the camera
 		if love.mouse.isDown("r") then
-			local dx=mx-x
-			local dy=my-y
-			camera:move(dx*(1/camera.z), -dy*(1/camera.z))
+			local wx,wy = camera:worldCoords(x,y)
+			local owx,owy = camera:worldCoords(mx,my)
+			local dx=owx-wx
+			local dy=owy-wy
+			camera:move(dx,dy)
 			mx=x
 			my=y
 		end
 		
 	end
 	
-	currentTest:update(dt)
+	if love.keyboard.isDown('left') then
+		camera:move(-1/camera.sx*dt*currentTest.moveSpeed,0)
+	elseif love.keyboard.isDown('right') then
+		camera:move(1/camera.sx*dt*currentTest.moveSpeed,0)
+	end
+	if love.keyboard.isDown('up') then
+		camera:move(0,-1/camera.sy*dt*currentTest.moveSpeed)
+	elseif love.keyboard.isDown('down') then
+		camera:move(0,1/camera.sy*dt*currentTest.moveSpeed)
+	end
 	
+	if love.keyboard.isDown('kp+') then
+		camera:scale(currentTest.zoomSpeed^(dt*4))
+	elseif love.keyboard.isDown('kp-') then
+		camera:scale(1/(currentTest.zoomSpeed^(dt*4)))
+	end
+	
+	currentTest:update(dt)
 	loveframes.update(dt)
 end
 
 
 function love.mousepressed(x, y, button)
-
 	if(button=="l" or button=="r") then
 		mx=x
 		my=y
-		if (button=="l")then
-			currentTest:tryMouseJoint(x,y)
+		if (button=="l") then
+			-- if not love.keyboard.isDown('lshift') then
+				currentTest:tryMouseJoint(x,y)
+			-- else
+				
+			-- end
 		end
 	elseif(button=="wu") then
-		camera:zoom(currentTest.zoomPerSec)
+		camera:scale(currentTest.zoomSpeed)
 	elseif(button=="wd") then
-		camera:zoom(1/ currentTest.zoomPerSec)
+		camera:scale(1/currentTest.zoomSpeed)
 	end
-
+	
+	currentTest:mousepressed(x,y,button)
 	loveframes.mousepressed(x, y, button)
-
 end
 
 function love.mousereleased(x, y, button)
-
 	if (button=="l") and mouseJoint then
 		mouseJoint:destroy()
 		mouseJoint=nil
 	end
-
+	
+	currentTest:mousereleased(x,y,button)
 	loveframes.mousereleased(x, y, button)
-
 end
 
 function love.keypressed(key, unicode)
-   
     if key=="escape" then
 		love.event.push("quit") 
 	end
 	
 	currentTest:keypressed(key)
-	
 	loveframes.keypressed(key, unicode)
-
 end
 
 function love.keyreleased(key)
-
-	-- your code
-
+	currentTest:keyreleased(key)
 	loveframes.keyreleased(key)
-
 end

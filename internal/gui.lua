@@ -192,15 +192,15 @@ btnRestart:CenterX()
 btnRestart:SetText("Restart Test")
 btnRestart.OnClick = function(object)
 	--let's keep the settings
-	local set=settings
+	-- local set=settings
 	loadTest(testChoice:GetChoice())
-	settings=set
-	cbShapes:SetChecked(settings.drawShapes)
-	cbJoints:SetChecked(settings.drawJoints)
-	cbCoords:SetChecked(settings.drawCoordinates)
-	cbAABBs:SetChecked(settings.drawAABBs)
-	cbBPos:SetChecked(settings.drawBodyPos)
-	slider:SetValue(settings.hz)
+	-- settings=set
+	-- cbShapes:SetChecked(settings.drawShapes)
+	-- cbJoints:SetChecked(settings.drawJoints)
+	-- cbCoords:SetChecked(settings.drawCoordinates)
+	-- cbAABBs:SetChecked(settings.drawAABBs)
+	-- cbBPos:SetChecked(settings.drawBodyPos)
+	-- slider:SetValue(settings.hz)
 end
 
 --Quit button
@@ -215,14 +215,3 @@ btnQuit.OnClick = function(object)
 	love.event.push("quit") 
 end
 -----------------------------
-
-
-
-
-
-
-
-
-
-
-

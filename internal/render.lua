@@ -31,21 +31,9 @@ local bodyPosColor={0, 255, 127}
 local jointColor={255, 255, 0}
 local mouseJointColor={255, 0, 0}
 
-local function setPhysDrawMode(bool)
-	if bool then
-		love.graphics.push()
-		love.graphics.translate( (w-panel:GetWidth())/2, h/2)
-		love.graphics.scale(1, -1)
-	else
-		love.graphics.pop()
-	end
-end
-
 local function drawCircleShape(shape, body)
-	local x, y=body:getPosition()
-	local r= shape:getRadius()
-	x, y=camera:cameraCoords(x*worldScale, y*worldScale)
-	r=r*worldScale*camera.z
+	local x,y	= body:getPosition()
+	local r		= shape:getRadius()
 	local bt=body:getType()
 	if bt=="dynamic" then
 		love.graphics.setColor(dynColor)
@@ -55,7 +43,6 @@ local function drawCircleShape(shape, body)
 		love.graphics.setColor(kinColor)
 	end
 	love.graphics.circle("fill", x, y, r)
-	love.graphics.setLineWidth(1)
 	if bt=="dynamic" then
 		love.graphics.setColor(dynEdgeColor)
 	elseif bt=="static" then
@@ -77,11 +64,10 @@ local function drawPolygonShape(shape, body)
 		-- X coordinates of the shapes
 		if i%2==1 then
 			xcopy=points[i]
-			points[i]=(math.cos(a)*points[i]-math.sin(a)*points[i+1] +bx)*worldScale
+			points[i]=(math.cos(a)*points[i]-math.sin(a)*points[i+1] +bx)
 		-- Y coordinates of the shapes
 		else
-			points[i]=(math.sin(a)*xcopy+math.cos(a)*points[i] +by)*worldScale
-			points[i-1], points[i]=camera:cameraCoords(points[i-1], points[i])
+			points[i]=(math.sin(a)*xcopy+math.cos(a)*points[i] +by)
 		end
 	end
 	local bt=body:getType()
@@ -93,7 +79,6 @@ local function drawPolygonShape(shape, body)
 		love.graphics.setColor(kinColor)
 	end
 	love.graphics.polygon("fill", points)
-	love.graphics.setLineWidth(1)
 	if bt=="dynamic" then
 		love.graphics.setColor(dynEdgeColor)
 	elseif bt=="static" then
@@ -106,14 +91,7 @@ end
 
 local function drawEdgeShape(shape)
 	local points={shape:getPoints()}
-	for i in ipairs(points) do
-		points[i]=points[i]*worldScale
-		if i%2==0 then
-			points[i-1], points[i]=camera:cameraCoords(points[i-1], points[i])
-		end
-	end
 	love.graphics.setColor(statEdgeColor)
-	love.graphics.setLineWidth(1)
 	love.graphics.line(points)
 end
 
@@ -122,121 +100,145 @@ local function drawAABB(shape, body)
 	local bx, by = body:getPosition()
 	for i in ipairs(points) do
 		if i%2==1 then
-			points[i]=(points[i]+bx)*worldScale
+			points[i]=(points[i]+bx)
 		else
-			points[i]=(points[i]+by)*worldScale
-			points[i-1], points[i]=camera:cameraCoords(points[i-1], points[i])
+			points[i]=(points[i]+by)
 		end
 	end
 	love.graphics.setColor(AABBColor)
-	love.graphics.setLineWidth(2)
 	love.graphics.rectangle("line", points[1], points[2], points[3]-points[1], points[4]-points[2])
 end
 
 local function drawJoint(joint)
 	local t=joint:getType()
 	local points={joint:getAnchors()}
-		for i in ipairs(points) do
-			points[i]=points[i]*worldScale
-			if i%2==0 then
-				points[i-1], points[i]=camera:cameraCoords(points[i-1], points[i])
-			end
-		end
 	if t=="mouse" then
 		love.graphics.setColor(mouseJointColor)
-		love.graphics.setLineWidth(3)
 		love.graphics.line(points)
 	else
 		love.graphics.setColor(jointColor)
-		love.graphics.setLineWidth(1)
 		love.graphics.line(points)
 	end
-	-- if t=="distance" then
-	-- elseif t=="gear" then
-	-- elseif t=="mouse" then
-	-- elseif t=="pulley" then
-	-- elseif t=="revolute" then
-	-- elseif t=="prismatic" then
-	-- end
 end
 
 local function drawBodyPos(body)
-	local x=body:getX()*worldScale
-	local y=body:getY()*worldScale
+	local x=body:getX()
+	local y=body:getY()
 	love.graphics.setPointStyle("rough")
 	love.graphics.setPointSize(2)
 	love.graphics.setColor(bodyPosColor)
-	love.graphics.point(camera:cameraCoords(x, y))
+	love.graphics.point(x, y)
 end
 
-function love.draw()
-    --camera:attach()
-	setPhysDrawMode(true)
-	if  not world:isLocked() then
+-- local function drawContact(contact)
+	-- local t = {contact:getPositions()}
+	-- for i = 1,#t,2 do
+		-- love.graphics.point(t[i],t[i+1])
+	-- end
+-- end
+
+local function drawWorld()
+	love.graphics.setLineWidth(1/camera.sx)
+	love.graphics.setLineStyle('rough')
+	--drawing shapes and AABBs
+	if settings.drawShapes or settings.drawAABBs then
 		
-		--drawing shapes and AABBs
-		if settings.drawShapes or settings.drawAABBs then
-			
-			local blist=world:getBodyList()
-			for i, v in ipairs(blist) do
-				local flist=v:getFixtureList()
-				if flist~=nil then
-					for _, k in ipairs(flist) do
-						local shape=k:getShape()
-						--draw shapes
-						if(settings.drawShapes) then
-							local t=shape:getType()
-							if t=="edge" then
-								drawEdgeShape(shape)
-							elseif t=="circle" then
-								drawCircleShape(shape, v)
-							elseif t=="polygon" then
-								drawPolygonShape(shape, v)
-							end
+		local blist=world:getBodyList()
+		for i, v in ipairs(blist) do
+			local flist=v:getFixtureList()
+			if flist~=nil then
+				for _, k in ipairs(flist) do
+					local shape=k:getShape()
+					--draw shapes
+					if(settings.drawShapes) then
+						local t=shape:getType()
+						if t=="edge" then
+							drawEdgeShape(shape)
+						elseif t=="circle" then
+							drawCircleShape(shape, v)
+						elseif t=="polygon" then
+							drawPolygonShape(shape, v)
 						end
-						--draw AABBs
-						if (settings.drawAABBs) then
-							drawAABB(shape, v)
-						end
-						--draw body positions
-						if settings.drawBodyPos then
-							drawBodyPos(v)
-						end
+					end
+					--draw AABBs
+					if (settings.drawAABBs) then
+						drawAABB(shape, v)
+					end
+					--draw body positions
+					if settings.drawBodyPos then
+						drawBodyPos(v)
 					end
 				end
 			end
 		end
-	
-		--drawing joints
-		if settings.drawJoints then
-			local jlist=world:getJointList()
-			for i, v in ipairs(jlist) do
-				drawJoint(v)
-			end
+	end
+
+	--drawing joints
+	if settings.drawJoints then
+		local jlist=world:getJointList()
+		for i, v in ipairs(jlist) do
+			drawJoint(v)
 		end
 	end
+	
+	-- if settings.drawContactPoints then
+		-- local clist = world:getContactList()
+		-- for i,v in ipairs(clist) do
+			-- drawContact(v)
+		-- end
+	-- end
+end
+
+function love.draw()
+    camera:attach()
+		drawWorld()
+		-- test draw stuff
+		currentTest:draw()
+	camera:detach()
 	
 	--drawing coordinates
-	if settings.drawCoordinates then
-		love.graphics.push()
-		love.graphics.scale(1, -1)
+	if settings.drawCoordinates then	
+		--http://stackoverflow.com/questions/361681/algorithm-for-nice-grid-line-intervals-on-a-graph
 		love.graphics.setColor(255, 255, 255)
-		for i=-50, 50, 10 do
-			for j=-50, 50, 10 do
-				local x, y = camera:cameraCoords(i*worldScale, j*worldScale)
-				love.graphics.print("("..i..","..j..")", x, -y)
+		local x1,y1,x2,y2 = camera:worldBbox()
+		local w = x2-x1
+		local minWidth = w/7
+		local mag = 10^math.floor(math.log10(minWidth))
+		local residual = minWidth/mag
+		local dx,dy
+		
+		if residual > 5 then
+			dx=10*mag
+			dy=dx
+		elseif residual > 2 then
+			dx=5*mag
+			dy=dx
+		elseif residual > 1 then
+			dx=2*mag
+			dy=dx
+		else
+			dx=mag
+			dy=dx
+		end
+		
+		for i = x1,x2+dx,dx do
+			i = math.floor(i/dx)*dx
+			for j = y1,y2+dy,dy do
+				j = math.ceil(j/dy)*dy
+				local x,y = camera:cameraCoords(i,j)
+				love.graphics.print("("..i..","..j..")", x, y)
 			end
 		end
-		love.graphics.pop()
 	end
-	
-	setPhysDrawMode(false)
-	--camera:detach()
 	
 	--drawing texts
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print(currentTest.title, 10, 10)
+	love.graphics.print(currentTest.title,10,10)
 	love.graphics.print(currentTest.text, 10, 25)
+	
+	if settings.pause then
+		love.graphics.print('**PAUSED**',10,love.graphics.getHeight()-20)
+	end
 	
 	--FPS
 	love.graphics.setColor(255, 255, 255)

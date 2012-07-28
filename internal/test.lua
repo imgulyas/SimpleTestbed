@@ -23,86 +23,36 @@
 
 require "../libs/middleclass/middleclass"
 local cam = require "libs/hump/camera"
-
-
-Settings=class('Settings')
-function Settings:initialize()
-	self.hz=60
-	self.drawShapes=true
-	self.drawJoints=true
-	self.drawAABBs=false
-	self.drawPairs=false
-	self.drawBodyPos=true
-	self.drawContactPoints=false
-	self.drawContactNormals=false
-	self.drawContactForces=false
-	self.drawFrictionForces=false
-	self.drawCoordinates=false
-	self.drawCOMs=false
-	self.drawStats=false
-	self.drawProfile=false
-	self.enableWarmStarting=true
-	self.enableContinuous=true
-	self.enableSubStepping=false
-	self.pause=false
-	self.singleStep=false
-end
-
-ContactPoint=class('ContactPoint')
-function ContactPoint:initialize()
-	self.fixtureA=nil		
-	self.fixtureB=nil
-	self.normal={}				--vec2
-	self.position={}			--vec2
-	self.state=nil				--pointstate
-end
+local shapes = require 'libs.hardoncollider.shapes'
 
 Test=class('Test')
 function Test:initialize()
-	
-	self.settings=Settings()
+	local w = w-panel:GetWidth()
 	
 	self.world=love.physics.newWorld(0, -10, true)
-     
-	self.camera=cam( (w-panel:GetWidth())/2, 0.75*h, 1, 0, w-panel:GetWidth(), h)
-	--self.camera=cam( 0, 0, 1, 0, w-panel:GetWidth(), h)
-
-	self.zoomPerSec=1.35
-	self.movePerSec=100
+    
+	-- aim camera at point(0,10) for test initialization
+	self.camera=cam(shapes.newPolygonShape(0,0,w,0,w,h,0,h),0, 0, 0, 1)
+	self.camera:setScale(15,-15)
+	self.camera:move(0,10)
+	
+	self.zoomSpeed=1.35
+	self.moveSpeed=300
 
 	self.title="TestTitle"
 	self.text=""
 	
-	self.bomb=nil
-	self.textLine=30
+	-- self.bomb=nil
+	-- self.textLine=30
 	self.mouseJoint=nil
-	self.pointCount=0
+	-- self.pointCount=0
 	
-	self.bombSpawning=false
+	-- self.bombSpawning=false
 	
-	self.stepCount=0
-
+	-- self.stepCount=0
 end
 
 function Test:update(dt)
-	if love.keyboard.isDown("kp+") then
-		currentTest.camera:zoom(math.pow( currentTest.zoomPerSec, dt))
-	end
-	if love.keyboard.isDown("kp-") then
-	    currentTest.camera:zoom(math.pow(1/currentTest.zoomPerSec, dt))
-    end
-	if love.keyboard.isDown("down") then
-	    currentTest.camera:move(0, -currentTest.movePerSec*dt)
-    end
-	if love.keyboard.isDown("up") then
-	    currentTest.camera:move(0, currentTest.movePerSec*dt)
-    end
-	if love.keyboard.isDown("right") then	  
-		currentTest.camera:move(currentTest.movePerSec*dt, 0)
-    end
-	if love.keyboard.isDown("left") then	  
-		currentTest.camera:move(-currentTest.movePerSec*dt, 0)
-    end
 end
 
 --checks if there is a shape at x, y screen coordinates and tries to grab it
@@ -118,23 +68,20 @@ function Test:tryMouseJoint(x, y)
 			local bx, by = v:getPosition()
 			for i in ipairs(points) do
 				if i%2==1 then
-					points[i]=(points[i]+bx)*worldScale
+					points[i]=(points[i]+bx)
 				else
-					points[i]=(points[i]+by)*worldScale
-					points[i-1], points[i]=self.camera:cameraCoords(points[i-1], points[i])
+					points[i]=(points[i]+by)
 				end
 			end
 		
-			local tx, ty = x-(w-panel:GetWidth())/2, -(y-h/2)
+			local tx, ty = self.camera:worldCoords(x,y)
 			
 			local inside=(tx > points[1]) and (tx < points[3]) and (ty > points[2]) and (ty < points[4])
 			if inside then
 				--creating a new mousejoint!
 				if (v:getType()=="dynamic") then
-					tx, ty=self.camera:worldCoords(tx, ty)
-					tx, ty=tx/worldScale, ty/worldScale
 					mouseJoint=love.physics.newMouseJoint(v, tx, ty)
-					return
+					return true
 				end
 			end
 		end
@@ -142,4 +89,16 @@ function Test:tryMouseJoint(x, y)
 end
 
 function Test:keypressed(key)
+end
+
+function Test:keyreleased(key)
+end
+
+function Test:mousepressed(x,y,button)
+end
+
+function Test:mousereleased(x,y,button)
+end
+
+function Test:draw()
 end
