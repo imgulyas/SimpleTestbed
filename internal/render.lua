@@ -124,10 +124,9 @@ end
 local function drawBodyPos(body)
 	local x=body:getX()
 	local y=body:getY()
-	love.graphics.setPointStyle("rough")
 	love.graphics.setPointSize(2)
 	love.graphics.setColor(bodyPosColor)
-	love.graphics.point(x, y)
+	love.graphics.points(x, y)
 end
 
 -- local function drawContact(contact)

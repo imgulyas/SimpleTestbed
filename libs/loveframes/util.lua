@@ -134,7 +134,7 @@ function loveframes.util.GetDirContents(dir, t)
 
 	local dir = dir
 	local t = t or {}
-	local files = love.filesystem.enumerate(dir)
+	local files = love.filesystem.getDirectoryItems(dir)
 	local dirs = {}
 	
 	-- local function to restore a string to it's original state after being split

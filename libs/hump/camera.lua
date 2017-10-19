@@ -36,12 +36,12 @@ camera.__index = camera
 local function new(shape,x,y,r,sx,sy)
 	-- new camera with shape boundary
 	shape._invertScale = 1
-	
+
 	-------------------
 	-- modified scaling
 	-------------------
 	local scale = shape.scale
-	
+
 	local _setScale = function(self,s)
 		assert(s > 0, 'scale must be greater than 0!')
 		scale(self,self._invertScale)
@@ -56,19 +56,19 @@ local function new(shape,x,y,r,sx,sy)
 	local _getScale = function(self)
 		return 1/self._invertScale
 	end
-	
+
 	shape.scale		= _scale
 	shape.setScale	= _setScale
 	shape.getScale	= _getScale
-	
-	local _stencil = lg.newStencil(function()
-		shape:draw('fill')
-	end)
+
+	local _stencil = function()
+    shape:draw('fill')
+	end
 	x,y		= x or lg.getWidth()/2, y or lg.getHeight()/2
 	sx = sx or 1
 	sy,r	= sy or sx,r or 0
 	return setmetatable(
-		{x = x, y = y, sx = sx, sy = sy, r = r, 
+		{x = x, y = y, sx = sx, sy = sy, r = r,
 		_stencil = _stencil,shape = shape}, camera)
 end
 
@@ -94,7 +94,7 @@ function camera:attach()
 	-- draw poly mask
 	lg.push()
 	local shapecx,shapecy = self.shape:center()
-	lg.setStencil(self._stencil)
+	lg.stencil(self._stencil, "replace", 1)
 	-- transform view in viewport
 	local cx,cy = shapecx*2/(self.sx*2),shapecy*2/(self.sy*2)
 	lg.scale(self.sx,self.sy)
@@ -104,7 +104,6 @@ function camera:attach()
 end
 
 function camera:detach()
-	lg.setStencil()
 	lg.pop()
 end
 

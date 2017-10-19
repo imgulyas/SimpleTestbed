@@ -49,7 +49,7 @@ function love.load()
 	love.physics.setMeter(1)
 	
    --adding all the tests from the tests lib
-	local testsTable = love.filesystem.enumerate( "tests" )
+	local testsTable = love.filesystem.getDirectoryItems( "tests" )
 	for i, v in ipairs(testsTable) do
 		print(v)
 		local s=string.gsub(v, ".lua", "")
@@ -81,11 +81,11 @@ function love.update(dt)
 		end
 	end
 		
-	if love.mouse.isDown("l") or love.mouse.isDown("r") then
+	if love.mouse.isDown(1) or love.mouse.isDown(2) then
 		local x, y=love.mouse.getPosition()
 		
 		--updating the mousejoint's position
-		if world and mouseJoint and love.mouse.isDown("l") then
+		if world and mouseJoint and love.mouse.isDown(1) then
 			local tx, ty = camera:mousepos()
 			if mouseJoint then
 				mouseJoint:setTarget(tx, ty)
@@ -93,7 +93,7 @@ function love.update(dt)
 		end
 		
 		--dragging the camera
-		if love.mouse.isDown("r") then
+		if love.mouse.isDown(2) then
 			local wx,wy = camera:worldCoords(x,y)
 			local owx,owy = camera:worldCoords(mx,my)
 			local dx=owx-wx
