@@ -1,25 +1,34 @@
------------------------
-LÖVE2D physics testbed
+# LÖVE2D physics testbed #
 
-It is a physics sandbox written for the LÖVE2d engine, using the Lua scripting language. The underyling physics engine is called Bo
-x2d.
+## Project summary
 
-For more information:
-www.lua.org
-www.love2d.org
-www.box2d.org
+This project is a port of a C++ physics testbed application using the same physics engine.
+It is a simplistic tool to help you test your own sandboxes.
+The app was written with the LÖVE2d game engine in Lua.
+The underyling physics engine is called Box2d.
 
-How to add your own tests:
+This app provides graphics and tools to manipulate the state of your sandbox.
 
-1)
-Create a new class, by inheriting my Test class.
-MYSUPERTEST=class('MYSUPERTEST', Test)
+More info on the used softwares:
 
-2)
-Save it in a lua file which name matches your class. Eg. MYSUPERTEST.lua
+  * www.lua.org
+  * www.love2d.org
+  * www.box2d.org
+  
+## How to run the app
 
-3)
-Put this file in the \tests directory
+Install love2d, then run app with the following command in terminal:
 
-4)
-Now your test will show up in the application's drop box.
+    $ love /path/to/SimpleTestbed
+
+You will find a number of sandboxes to have fun with by default.
+
+## How to add your own sandboxes:
+
+1. Implement a new sandbox class in a new file by inheriting from the Test class. E.g.:
+    MY_SANDBOX=class('MY_SANDBOX', Test)
+
+2. Save it in a .lua file with matching name in the tests/ directory. E.g.:
+    tests/MY_SANDBOX.lua
+
+3. Now your sandbox will show up in the application's drop box of sandboxes. Choose it to run it. Have fun tweaking it!
