@@ -1,5 +1,5 @@
 -- Copyright (c) 2012 Gulyás Imre Miklós imgulyas@gmail.com
--- 
+--
 -- Permission is hereby granted, free of charge, to any person obtaining
 -- a copy of this software and associated documentation files (the
 -- "Software"), to deal in the Software without restriction, including
@@ -7,10 +7,10 @@
 -- distribute, sublicense, and/or sell copies of the Software, and to
 -- permit persons to whom the Software is furnished to do so, subject to
 -- the following conditions:
--- 
+--
 -- The above copyright notice and this permission notice shall be
 -- included in all copies or substantial portions of the Software.
--- 
+--
 -- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 -- EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 -- MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -19,19 +19,19 @@
 -- OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 -- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-function loadTest(test)
+function loadSandbox(test)
 	if world then
 		world:destroy()
 		mouseJoint=nil
 	end
-	
-	local s="currentTest="..test.."()"
+
+	local s="currentSandbox="..test.."()"
 	loadstring(s)()
-	currentTest.title=test
-	world=currentTest.world
-	camera=currentTest.camera
+	currentSandbox.title=test
+	world=currentSandbox.world
+	camera=currentSandbox.camera
 	settings=settings or Settings()
-	mouseJoint=currentTest.mouseJoint
+	mouseJoint=currentSandbox.mouseJoint
 	-- settings.pause=not settings.enableWarmStarting
 	slider:SetValue(settings.hz)
 end
@@ -40,28 +40,28 @@ function love.load()
 	require "libs/loveframes/init"
 	require "internal/gui"
 	require 'internal/settings'
-	require "internal/test"
+	require "internal/sandbox"
 	require "internal/render"
 
 	w=love.graphics.getWidth()
 	h=love.graphics.getHeight()
 
 	love.physics.setMeter(1)
-	
-   --adding all the tests from the tests lib
-	local testsTable = love.filesystem.getDirectoryItems( "tests" )
-	for i, v in ipairs(testsTable) do
+
+   --adding all the sandboxes from the sandboxes lib
+	local sandboxesTable = love.filesystem.getDirectoryItems("sandboxes")
+	for i, v in ipairs(sandboxesTable) do
 		print(v)
 		local s=string.gsub(v, ".lua", "")
-		require("tests/"..s)
-		testChoice:AddChoice(s)
+		require("sandboxes/"..s)
+		sandboxChoice:AddChoice(s)
 	end
-	
-	local s=string.gsub(testsTable[1], ".lua", "")
-	
+
+	local s=string.gsub(sandboxesTable[1], ".lua", "")
+
 	--loading the first test manually
-	testChoice:SetChoice(s)
-	loadTest(s)
+	sandboxChoice:SetChoice(s)
+	loadSandbox(s)
 end
 
 local worldUpdateCounter=0
@@ -73,17 +73,17 @@ function love.update(dt)
 			if worldUpdateCounter > 1 then
 				worldUpdateCounter = 1
 			end
-			
+
 			while worldUpdateCounter >= 1/settings.hz do
 				world:update(1/settings.hz)
 				worldUpdateCounter = worldUpdateCounter-1/settings.hz
 			end
 		end
 	end
-		
+
 	if love.mouse.isDown(1) or love.mouse.isDown(2) then
 		local x, y=love.mouse.getPosition()
-		
+
 		--updating the mousejoint's position
 		if world and mouseJoint and love.mouse.isDown(1) then
 			local tx, ty = camera:mousepos()
@@ -91,7 +91,7 @@ function love.update(dt)
 				mouseJoint:setTarget(tx, ty)
 			end
 		end
-		
+
 		--dragging the camera
 		if love.mouse.isDown(2) then
 			local wx,wy = camera:worldCoords(x,y)
@@ -102,27 +102,27 @@ function love.update(dt)
 			mx=x
 			my=y
 		end
-		
+
 	end
-	
+
 	if love.keyboard.isDown('left') then
-		camera:move(-1/camera.sx*dt*currentTest.moveSpeed,0)
+		camera:move(-1/camera.sx*dt*currentSandbox.moveSpeed,0)
 	elseif love.keyboard.isDown('right') then
-		camera:move(1/camera.sx*dt*currentTest.moveSpeed,0)
+		camera:move(1/camera.sx*dt*currentSandbox.moveSpeed,0)
 	end
 	if love.keyboard.isDown('up') then
-		camera:move(0,-1/camera.sy*dt*currentTest.moveSpeed)
+		camera:move(0,-1/camera.sy*dt*currentSandbox.moveSpeed)
 	elseif love.keyboard.isDown('down') then
-		camera:move(0,1/camera.sy*dt*currentTest.moveSpeed)
+		camera:move(0,1/camera.sy*dt*currentSandbox.moveSpeed)
 	end
-	
+
 	if love.keyboard.isDown('kp+') then
-		camera:scale(currentTest.zoomSpeed^(dt*4))
+		camera:scale(currentSandbox.zoomSpeed^(dt*4))
 	elseif love.keyboard.isDown('kp-') then
-		camera:scale(1/(currentTest.zoomSpeed^(dt*4)))
+		camera:scale(1/(currentSandbox.zoomSpeed^(dt*4)))
 	end
-	
-	currentTest:update(dt)
+
+	currentSandbox:update(dt)
 	loveframes.update(dt)
 end
 
@@ -133,18 +133,18 @@ function love.mousepressed(x, y, button)
 		my=y
 		if (button=="l") then
 			-- if not love.keyboard.isDown('lshift') then
-				currentTest:tryMouseJoint(x,y)
+				currentSandbox:tryMouseJoint(x,y)
 			-- else
-				
+
 			-- end
 		end
 	elseif(button=="wu") then
-		camera:scale(currentTest.zoomSpeed)
+		camera:scale(currentSandbox.zoomSpeed)
 	elseif(button=="wd") then
-		camera:scale(1/currentTest.zoomSpeed)
+		camera:scale(1/currentSandbox.zoomSpeed)
 	end
-	
-	currentTest:mousepressed(x,y,button)
+
+	currentSandbox:mousepressed(x,y,button)
 	loveframes.mousepressed(x, y, button)
 end
 
@@ -153,21 +153,21 @@ function love.mousereleased(x, y, button)
 		mouseJoint:destroy()
 		mouseJoint=nil
 	end
-	
-	currentTest:mousereleased(x,y,button)
+
+	currentSandbox:mousereleased(x,y,button)
 	loveframes.mousereleased(x, y, button)
 end
 
 function love.keypressed(key, unicode)
     if key=="escape" then
-		love.event.push("quit") 
+		love.event.push("quit")
 	end
-	
-	currentTest:keypressed(key)
+
+	currentSandbox:keypressed(key)
 	loveframes.keypressed(key, unicode)
 end
 
 function love.keyreleased(key)
-	currentTest:keyreleased(key)
+	currentSandbox:keyreleased(key)
 	loveframes.keyreleased(key)
 end

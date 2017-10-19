@@ -1,6 +1,6 @@
-VaryingRestitution=class('VaryingRestitution', Test)
+VaryingRestitution=class('VaryingRestitution', Sandbox)
 function VaryingRestitution:initialize()
-	Test.initialize(self)
+	Sandbox.initialize(self)
 	
 	local count=7
 	local radius=1

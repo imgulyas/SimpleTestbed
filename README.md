@@ -25,8 +25,8 @@ You will find a number of sandboxes to have fun with by default.
 
 ## How to add your own sandboxes:
 
-1. Implement a new sandbox class in a new file by inheriting from the Test class. E.g.:
-    MY_SANDBOX=class('MY_SANDBOX', Test)
+1. Implement a new sandbox class in a new file by inheriting from the Sandbox class. E.g.:
+    MY_SANDBOX=class('MY_SANDBOX', Sandbox)
 
 2. Save it in a .lua file with matching name in the tests/ directory. E.g.:
     tests/MY_SANDBOX.lua

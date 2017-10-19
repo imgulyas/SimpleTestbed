@@ -29,13 +29,13 @@ panel:SetSize(panelWidth, love.graphics.getHeight())
 panel:SetPos(love.graphics.getWidth()-panelWidth, 0)
 -----------------------------
 
---------------------Test chooser
+--------------------Sandbox chooser
 
-testChoice = loveframes.Create("multichoice")
-testChoice:SetParent(panel)
-testChoice:SetWidth(panelWidth-10)
-testChoice.OnChoiceSelected = function(object, chosenTest)
-		loadTest(chosenTest)	
+sandboxChoice = loveframes.Create("multichoice")
+sandboxChoice:SetParent(panel)
+sandboxChoice:SetWidth(panelWidth-10)
+sandboxChoice.OnChoiceSelected = function(object, chosenSandbox)
+		loadSandbox(chosenSandbox)	
 	end
 -----------------------------------
 
@@ -43,8 +43,8 @@ testChoice.OnChoiceSelected = function(object, chosenTest)
 
 local hzText =loveframes.Create("text")
 hzText:SetParent(panel)
---hzText:SetY(testChoice:GetY()+testChoice:GetHeight()+15)
-currY=testChoice:GetHeight()+25
+--hzText:SetY(sandboxChoice:GetY()+testChoice:GetHeight()+15)
+currY=sandboxChoice:GetHeight()+25
 hzText:SetY(currY)
 hzText:SetMaxWidth(panelWidth-10)
 hzText:SetText("Update frequency: 60 Hz")
@@ -189,11 +189,11 @@ btnRestart:SetSize(100, 40)
 currY=currY+btnStep:GetHeight()+10
 btnRestart:SetY(currY)
 btnRestart:CenterX()
-btnRestart:SetText("Restart Test")
+btnRestart:SetText("Restart Sandbox")
 btnRestart.OnClick = function(object)
 	--let's keep the settings
 	-- local set=settings
-	loadTest(testChoice:GetChoice())
+	loadSandbox(sandboxChoice:GetChoice())
 	-- settings=set
 	-- cbShapes:SetChecked(settings.drawShapes)
 	-- cbJoints:SetChecked(settings.drawJoints)

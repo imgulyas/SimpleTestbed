@@ -1,9 +1,9 @@
---SphereStack test from Box2D's Testbed application
+--SphereStack test from Box2D's Sandboxbed application
 
 
-SphereStack=class('SphereStack', Test)
+SphereStack=class('SphereStack', Sandbox)
 function SphereStack:initialize()
-	Test.initialize(self)
+	Sandbox.initialize(self)
 	
 	local count=10
 	local radius=1

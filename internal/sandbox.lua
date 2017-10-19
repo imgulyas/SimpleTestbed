@@ -19,44 +19,44 @@
 -- OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 -- WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
--- The Test class is the superclass of all the test cases you create.
+-- The Sandbox class is the superclass of all the test cases you create.
 
 require "../libs/middleclass/middleclass"
 local cam = require "libs/hump/camera"
 local shapes = require 'libs.hardoncollider.shapes'
 
-Test=class('Test')
-function Test:initialize()
+Sandbox=class('Sandbox')
+function Sandbox:initialize()
 	local w = w-panel:GetWidth()
-	
+
 	self.world=love.physics.newWorld(0, -10, true)
-    
+
 	-- aim camera at point(0,10) for test initialization
 	self.camera=cam(shapes.newPolygonShape(0,0,w,0,w,h,0,h),0, 0, 0, 1)
 	self.camera:setScale(15,-15)
 	self.camera:move(0,10)
-	
+
 	self.zoomSpeed=1.35
 	self.moveSpeed=300
 
-	self.title="TestTitle"
+	self.title="SandboxTitle"
 	self.text=""
-	
+
 	-- self.bomb=nil
 	-- self.textLine=30
 	self.mouseJoint=nil
 	-- self.pointCount=0
-	
+
 	-- self.bombSpawning=false
-	
+
 	-- self.stepCount=0
 end
 
-function Test:update(dt)
+function Sandbox:update(dt)
 end
 
 --checks if there is a shape at x, y screen coordinates and tries to grab it
-function Test:tryMouseJoint(x, y)
+function Sandbox:tryMouseJoint(x, y)
 	--check if there is a shape at x, y
 	local blist=self.world:getBodyList()
 	for i, v in ipairs(blist) do
@@ -73,9 +73,9 @@ function Test:tryMouseJoint(x, y)
 					points[i]=(points[i]+by)
 				end
 			end
-		
+
 			local tx, ty = self.camera:worldCoords(x,y)
-			
+
 			local inside=(tx > points[1]) and (tx < points[3]) and (ty > points[2]) and (ty < points[4])
 			if inside then
 				--creating a new mousejoint!
@@ -88,17 +88,17 @@ function Test:tryMouseJoint(x, y)
 	end
 end
 
-function Test:keypressed(key)
+function Sandbox:keypressed(key)
 end
 
-function Test:keyreleased(key)
+function Sandbox:keyreleased(key)
 end
 
-function Test:mousepressed(x,y,button)
+function Sandbox:mousepressed(x,y,button)
 end
 
-function Test:mousereleased(x,y,button)
+function Sandbox:mousereleased(x,y,button)
 end
 
-function Test:draw()
+function Sandbox:draw()
 end

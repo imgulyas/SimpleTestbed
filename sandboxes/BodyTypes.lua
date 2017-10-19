@@ -1,8 +1,8 @@
 --BodyTypes test from Box2D's Testbed
 
-BodyTypes=class('BodyTypes', Test)
+BodyTypes=class('BodyTypes', Sandbox)
 function BodyTypes:initialize()
-	Test.initialize(self)
+	Sandbox.initialize(self)
 
 	self.text="Keys: (d) dynamic, (s) static, (k) kinematic"
 
@@ -56,7 +56,7 @@ function BodyTypes:keypressed(key)
 end
 
 function BodyTypes:update(dt)
-	Test:update(dt)
+	Sandbox:update(dt)
 	if self.platform:getType()=="kinematic" then
 		vx=self.platform:getLinearVelocity()
 		px=self.platform:getX()

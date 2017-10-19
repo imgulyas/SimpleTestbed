@@ -192,7 +192,7 @@ function love.draw()
     camera:attach()
 		drawWorld()
 		-- test draw stuff
-		currentTest:draw()
+		currentSandbox:draw()
 	camera:detach()
 	
 	--drawing coordinates
@@ -232,8 +232,8 @@ function love.draw()
 	
 	--drawing texts
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print(currentTest.title,10,10)
-	love.graphics.print(currentTest.text, 10, 25)
+	love.graphics.print(currentSandbox.title,10,10)
+	love.graphics.print(currentSandbox.text, 10, 25)
 	
 	if settings.pause then
 		love.graphics.print('**PAUSED**',10,love.graphics.getHeight()-20)

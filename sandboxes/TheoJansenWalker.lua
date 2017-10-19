@@ -1,4 +1,4 @@
-TheoJansenWalker=class('TheoJansenWalker', Test)
+TheoJansenWalker=class('TheoJansenWalker', Sandbox)
 
 function TheoJansenWalker:CreateLeg(s, wheelAnchor)
 	
@@ -63,7 +63,7 @@ function TheoJansenWalker:CreateLeg(s, wheelAnchor)
 end
 
 function TheoJansenWalker:initialize()
-	Test.initialize(self)
+	Sandbox.initialize(self)
 	
 	self.text="Keys: left = a, brake = s, right = d, toggle motor = m"
 	
