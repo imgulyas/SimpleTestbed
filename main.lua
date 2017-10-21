@@ -51,7 +51,6 @@ function love.load()
    --adding all the sandboxes from the sandboxes lib
 	local sandboxesTable = love.filesystem.getDirectoryItems("sandboxes")
 	for i, v in ipairs(sandboxesTable) do
-		print(v)
 		local s=string.gsub(v, ".lua", "")
 		require("sandboxes/"..s)
 		sandboxChoice:AddChoice(s)
@@ -65,6 +64,7 @@ function love.load()
 end
 
 local worldUpdateCounter=0
+mx, my = 0, 0 -- camera:mousepos()
 function love.update(dt)
 	-- time control
 	if world then
@@ -127,39 +127,49 @@ function love.update(dt)
 end
 
 
+function backwardCompatibility08(button)
+  if button == 1 then
+    return "l"
+  elseif button == 2 then
+    return "r"
+  elseif button == 3 then
+    return "m"
+  end
+end
+
 function love.mousepressed(x, y, button)
-	if(button=="l" or button=="r") then
+	if(button==1 or button==2) then
 		mx=x
 		my=y
-		if (button=="l") then
-			-- if not love.keyboard.isDown('lshift') then
+		if (button==1) then
 				currentSandbox:tryMouseJoint(x,y)
-			-- else
-
-			-- end
-		end
-	elseif(button=="wu") then
-		camera:scale(currentSandbox.zoomSpeed)
-	elseif(button=="wd") then
-		camera:scale(1/currentSandbox.zoomSpeed)
+    end
 	end
 
 	currentSandbox:mousepressed(x,y,button)
-	loveframes.mousepressed(x, y, button)
+	loveframes.mousepressed(x, y, backwardCompatibility08(button))
 end
 
 function love.mousereleased(x, y, button)
-	if (button=="l") and mouseJoint then
+	if (button==1) and mouseJoint then
 		mouseJoint:destroy()
 		mouseJoint=nil
 	end
 
 	currentSandbox:mousereleased(x,y,button)
-	loveframes.mousereleased(x, y, button)
+	loveframes.mousereleased(x, y, backwardCompatibility08(button))
+end
+
+function love.wheelmoved(x, y)
+  if y > 0 then
+    camera:scale(currentSandbox.zoomSpeed)
+  elseif y < 0 then
+		camera:scale(1/currentSandbox.zoomSpeed)
+  end
 end
 
 function love.keypressed(key, unicode)
-    if key=="escape" then
+  if key=="escape" then
 		love.event.push("quit")
 	end
 
